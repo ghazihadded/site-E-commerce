@@ -9,6 +9,8 @@ import {
   LOGIN_SUCCES,
   RESET_PASSWORD_FAIL,
   RESET_PASSWORD,
+  GOOGLE_LOGIN_FAIL,
+  GOOGLE_LOGIN_SUCCES,
 } from "../actions/Types";
 
 const initialState = {
@@ -26,6 +28,7 @@ const reducer = (state = initialState, action) => {
 
   switch (action.type) {
     case CREATE_USER_SUCCES:
+      case GOOGLE_LOGIN_SUCCES :
     case LOGIN_SUCCES:
     case RESET_PASSWORD:
       localStorage.setItem('token',payload.token)
@@ -33,6 +36,7 @@ const reducer = (state = initialState, action) => {
 
     case UPDATE_PASS_SUCCES:
     case USER_FAIL:
+      case GOOGLE_LOGIN_FAIL:
     case CREATE_USER_FAIL:
     case LOGIN_FAIL:
       localStorage.removeItem('token')

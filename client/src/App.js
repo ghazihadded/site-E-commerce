@@ -32,6 +32,7 @@ import ForgotPassword from './components/user/ForgotPassword';
 import NewPassword from './components/user/NewPassword';
 import SetToken from './headers/SetToken'
 import './App.css';
+import LoginGoogle from './components/user/LoginGoogle';
 
 
 
@@ -54,6 +55,7 @@ useEffect(()=>{
       <div className="container container-fluid">
       <Route path='/'exact component={HomePage} />  
       <Route path='/login' component={Login} />
+      <Route path='/google' component={ LoginGoogle } />
       <Route path='/product/:id' component={ProductDetail}  />
       <Route path='/products/:search' component={searchProducts}  />
       <Route path='/cart' component={ItemCart}  />

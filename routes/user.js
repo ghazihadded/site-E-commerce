@@ -15,7 +15,7 @@ const {
   forgotPassword,
   resetPassword,
   updateNewPassword,
-  logout
+  googleLogin
 } = require("../controlles/userControlles");
 const {
   validator,
@@ -59,6 +59,6 @@ router.put("/newPassword", auth,registerNewPassword(),validator , updateNewPassw
 router.put("/by/:id", auth,updateUserById);
 
 //@ http://localhost:4000/api/user
-router.get("/me/logout", logout );
+router.post("/google",googleLogin  );
 
 module.exports = router;

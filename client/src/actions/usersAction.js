@@ -4,9 +4,11 @@ import {
   USER_ID_SUCCES,
   USER_ID_FAIL,
   REQUEST_ID_USER,
-
+  GOOGLE_LOGIN_FAIL,
+  GOOGLE_LOGIN_SUCCES,
   UPDATE_USERID_SUCCES,
-  DELETE_USER
+  DELETE_USER,
+ 
 } from "./Types";
 import axios from "axios";
 import setToken from "../headers/SetToken";
@@ -78,3 +80,20 @@ export const deleteUser = (id) => async (dispatch) => {
     }
   }
 };
+
+export const googleLogin=(tokenId)=>async dispatch=>{
+  try {
+      const {data}=await axios.post('http://localhost:4000/api/user/google',tokenId)
+      console.log(data)
+       dispatch({
+         type:GOOGLE_LOGIN_SUCCES,
+         payload:data,
+       })
+  } catch (err) {
+       
+    dispatch({
+      type:GOOGLE_LOGIN_FAIL,
+     
+    })
+  }
+}

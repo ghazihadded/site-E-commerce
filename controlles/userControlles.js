@@ -3,6 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary");
 const sendEmail = require("../utils/sendEmail");
+const { OAuth2Client }=require('google-auth-library') 
+
+const client= new OAuth2Client(process.env.SECRET_CLIENTID)
 
 //@ http://localhost:4000/api/user
 exports.createUser = async (req, res, next) => {
@@ -313,12 +316,41 @@ exports.updateNewPassword=async(req,res,next)=>{
 }
 
 
-exports.logout=(req,res,next)=>{
+exports.googleLogin=async(req,res,next)=>{
   
-  res.cookie('token',null, {expires: new Date(Date.now()),httpOnly: true})
+  const {tokenId}=req.body 
+  try {
+        const user =await client.verifyIdToken({idToken:tokenId,audience:process.env.SECRET_CLIENTID}) 
+        const {email_verified,email,name,picture}=user.payload
+        
+        if(email_verified){
+         let newUser= await  User.findOne({email}).select("-password")
+        
+             if(newUser){
+               const token = newUser.getJwtToken()
+               res.status(200).json({token,newUser})
+               
+             }else{
+               let password=(Date.now()).toString()
+               newUser = new User({
+                email,
+                name,
+                password,
+                images:picture,
+              })
+                const salt = await bcrypt.genSalt(10)
+                newUser.password=await bcrypt.hash(password,salt)
+                const token = newUser.getJwtToken()
+                await newUser.save()
+                res.status(200).send({token,newUser:{
+                  name,email,images:picture,role:"user"
+                }})
+              
+             }
+        }
 
-res.status(200).json({
-    success: true,
-    message: 'Logged out'
-})
+  } catch (err) {
+    console.log(err)
+  }
+
 }

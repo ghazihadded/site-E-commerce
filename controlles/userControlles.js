@@ -3,9 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary");
 const sendEmail = require("../utils/sendEmail");
-const { OAuth2Client }=require('google-auth-library') 
+const { OAuth2Client } = require("google-auth-library");
 
-const client= new OAuth2Client(process.env.SECRET_CLIENTID)
+const client = new OAuth2Client(process.env.SECRET_CLIENTID);
 
 //@ http://localhost:4000/api/user
 exports.createUser = async (req, res, next) => {
@@ -33,10 +33,10 @@ exports.createUser = async (req, res, next) => {
         id: newUser._id,
       },
     };
-  
+
     jwt.sign(payload, process.env.SECRET_TOKEN, (err, token) => {
       if (err) return res.status(400).send(err);
-      res.status(200).cookie('token',token).json({ token, newUser });
+      res.status(200).cookie("token", token).json({ token, newUser });
     });
   } catch (err) {
     res.status(500).json({
@@ -66,17 +66,16 @@ exports.userLogin = async (req, res, next) => {
 
     newUser = await User.findOne({ email }).select("-password");
 
-   const token = newUser.getJwtToken()  
-  
-   /* const options = {
+    const token = newUser.getJwtToken();
+
+    /* const options = {
       expires: new Date(
           Date.now() + 7 * 24 * 60 * 60 * 1000
       ),
       httpOnly: true,
     cookie('token',token,options),
   }*/
-     res.status(200).json({token,newUser})
-    
+    res.status(200).json({ token, newUser });
   } catch (err) {
     res.status(500).json({
       succes: false,
@@ -97,7 +96,7 @@ exports.getUser = async (req, res, next) => {
 
     res.status(200).json(user);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.status(500).json({
       succes: false,
       msg: "require failed",
@@ -233,13 +232,12 @@ exports.forgotPassword = async (req, res, next) => {
 
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
-    
 
     await sendEmail({
-        email:user.email,
-        subject: 'ShopIT Password Recovery',
-       resetToken
-      }) 
+      email: user.email,
+      subject: "ShopIT Password Recovery",
+      resetToken,
+    });
     res.status(200).json({
       success: true,
       message: `Email sent to: ${user.email}`,
@@ -252,105 +250,106 @@ exports.forgotPassword = async (req, res, next) => {
 //@ http://localhost:4000/api/user
 exports.resetPassword = async (req, res, next) => {
   try {
-    const newUser= await User.findOne({
-      email:req.body.email,
+    const newUser = await User.findOne({
+      email: req.body.email,
       resetPasswordToken: req.body.code,
       resetPasswordExpire: { $gt: Date.now() },
     });
     if (!newUser) {
       return res
         .status(400)
-        .send([
-          { msg: "code is invalid or has been expired" },
-        ]);
+        .send([{ msg: "code is invalid or has been expired" }]);
     }
-    const payload={
-      user:{
-        id: newUser._id
-      } 
-    }
-   jwt.sign(payload,process.env.SECRET_TOKEN,(err,token)=>{
-     if(err){ return res.status(400).send(err) };
+    const payload = {
+      user: {
+        id: newUser._id,
+      },
+    };
+    jwt.sign(payload, process.env.SECRET_TOKEN, (err, token) => {
+      if (err) {
+        return res.status(400).send(err);
+      }
 
-     res.status(200).json({
-      success: true,
-      newUser,
-      token,
+      res.status(200).json({
+        success: true,
+        newUser,
+        token,
+      });
     });
-   })
-    
   } catch (err) {
     res.status(500).send([{ msg: "server error" }]);
   }
 };
 
 //@ http://localhost:4000/api/user/newPassword
-exports.updateNewPassword=async(req,res,next)=>{
-    
-  const {password,confirmPassword}=req.body
+exports.updateNewPassword = async (req, res, next) => {
+  const { password, confirmPassword } = req.body;
 
   try {
-    const user =await User.findById(req.user.id)
-      
-    if(!user) { return res.status(400).send([{msg:"user not found"}]) }
+    const user = await User.findById(req.user.id);
 
-    if(password !== confirmPassword) { return res.status(400).send([{msg:"confirm password not correct"}]) } 
-          
-     const salt= await bcrypt.genSalt(10)
-     user.password = await bcrypt.hash(password,salt)
-     user.resetPasswordToken = undefined;
+    if (!user) {
+      return res.status(400).send([{ msg: "user not found" }]);
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).send([{ msg: "confirm password not correct" }]);
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+    user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-     await user.save()
-     res.status(200).send({
-       succes:true,
-      
-     })
+    await user.save();
+    res.status(200).send({
+      succes: true,
+    });
   } catch (err) {
-    
     res.status(500).send({
-     msg:"update Password not completed"
-     
-    })
+      msg: "update Password not completed",
+    });
   }
+};
 
-}
-
-
-exports.googleLogin=async(req,res,next)=>{
-  
-  const {tokenId}=req.body 
+exports.googleLogin = async (req, res, next) => {
+  const { tokenId } = req.body;
   try {
-        const user =await client.verifyIdToken({idToken:tokenId,audience:process.env.SECRET_CLIENTID}) 
-        const {email_verified,email,name,picture}=user.payload
-        
-        if(email_verified){
-         let newUser= await  User.findOne({email}).select("-password")
-        
-             if(newUser){
-               const token = newUser.getJwtToken()
-               res.status(200).json({token,newUser})
-               
-             }else{
-               let password=(Date.now()).toString()
-               newUser = new User({
-                email,
-                name,
-                password,
-                images:picture,
-              })
-                const salt = await bcrypt.genSalt(10)
-                newUser.password=await bcrypt.hash(password,salt)
-                const token = newUser.getJwtToken()
-                await newUser.save()
-                res.status(200).send({token,newUser:{
-                  name,email,images:picture,role:"user"
-                }})
-              
-             }
-        }
+    const user = await client.verifyIdToken({
+      idToken: tokenId,
+      audience: process.env.SECRET_CLIENTID,
+    });
+    const { email_verified, email, name, picture } = user.payload;
 
+    if (email_verified) {
+      let newUser = await User.findOne({ email }).select("-password");
+
+      if (newUser) {
+        const token = newUser.getJwtToken();
+        res.status(200).json({ token, newUser });
+      } else {
+        let password = Date.now().toString();
+        newUser = new User({
+          email,
+          name,
+          password,
+          images: picture,
+        });
+        const salt = await bcrypt.genSalt(10);
+        newUser.password = await bcrypt.hash(password, salt);
+        const token = newUser.getJwtToken();
+        await newUser.save();
+        res.status(200).send({
+          token,
+          newUser: {
+            name,
+            email,
+            images: picture,
+            role: "user",
+          },
+        });
+      }
+    }
   } catch (err) {
-    console.log(err)
+    console.log(err);
   }
-
-}
+};

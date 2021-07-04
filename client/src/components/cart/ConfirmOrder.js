@@ -1,31 +1,26 @@
-import React, { Fragment, useEffect } from "react";
+import React, { Fragment } from "react";
 import { Link } from "react-router-dom";
 import CheckoutSteps from "./CheckoutSteps";
 import { useSelector, useDispatch } from "react-redux";
-import { createOrder } from "../../actions/orderAction";
 
 const ConfirmOrder = ({ history }) => {
   const { cart, shippingInfo } = useSelector((state) => state.carts);
   const { user } = useSelector((state) => state.auth);
-  const { succes } = useSelector((state) => state.order);
-  const dispatch = useDispatch();
-
-  // Calculate Order Prices
 
   const totalPrice = cart.reduce(
     (acc, item) => acc + item.product.price * item.stock,
     0
   );
 
-  useEffect(() => {
-    if (succes) {
-      history.push("/succes");
-    }
-    
-    
-  }, [succes,history]);
+  const processToPayment = () => {
+    const data = {
+      totalPrice,
+    };
+    sessionStorage.setItem("orderinfo", JSON.stringify(data));
+    history.push("/payment");
+  };
 
-  const ordreConfirm = () => {
+  /*  const ordreConfirm = () => {
     const orderItems = [];
     cart.forEach((cart) =>
       orderItems.push({
@@ -37,8 +32,8 @@ const ConfirmOrder = ({ history }) => {
       })
     );
     dispatch(createOrder({ shippingInfo, orderItems, totalPrice }));
-    console.log({ shippingInfo, orderItems, totalPrice });
-  };
+    
+  }; */
 
   return (
     <Fragment>
@@ -104,7 +99,7 @@ const ConfirmOrder = ({ history }) => {
             <button
               id="checkout_btn"
               className="btn btn-primary btn-block"
-              onClick={ordreConfirm}
+              onClick={processToPayment}
             >
               Confirm Order
             </button>

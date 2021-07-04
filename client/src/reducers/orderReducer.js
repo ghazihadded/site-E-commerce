@@ -29,11 +29,19 @@ const reducer = (state = initialState, action) => {
     case MY_ORDER_ID_FAIL:
       return { ...state, order: null, loading: false };
     case GET_ALLORDER_SUCCES:
-        return { ...state, orders:payload.order,totalAmount:payload.totalAmount , allOrdersLoading: false }; 
+      return {
+        ...state,
+        orders: payload.order,
+        totalAmount: payload.totalAmount,
+        allOrdersLoading: false,
+      };
     case GET_ALLORDER_FAIL:
-            return { ...state, orders:[], allOrdersLoading: false }; 
+      return { ...state, orders: [], allOrdersLoading: false };
     case DELETE_ORDER:
-            return { ...state, orders:state.orders.filter(order=>order._id!==payload) }; 
+      return {
+        ...state,
+        orders: state.orders.filter((order) => order._id !== payload),
+      };
     default:
       return state;
   }

@@ -1,20 +1,19 @@
-const express=require('express')
-const connect=require('./config/connectDb')
-const cors=require('cors')
+const express = require("express");
+const connect = require("./config/connectDb");
+const cors = require("cors");
 /* const session=require('express-session')
 const MongoStore = require('connect-mongo') */
-const cookieParser = require('cookie-parser')
+const cookieParser = require("cookie-parser");
 
-const fileUpload = require('express-fileupload')
-const dotenv=require('dotenv')
-dotenv.config({path:'./config/config.env'})
-const app=express()
+const fileUpload = require("express-fileupload");
+const dotenv = require("dotenv");
+dotenv.config({ path: "./config/config.env" });
+const app = express();
 
-
-connect()
-app.use(cors())
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+connect();
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 /* const sessionStore = new MongoStore({  mongoUrl:process.env.DB_LOCAL_URI , collection: 'sessions' });
 app.use(session({
@@ -28,25 +27,20 @@ app.use(session({
     }
 })); */
 
-app.use(cookieParser())
+app.use(cookieParser());
 
 app.use("/public", express.static("public"));
 
-app.use('/api/v1',require('./routes/products'))
-app.use('/api/user',require('./routes/user'))
+app.use("/api/v1", require("./routes/products"));
+app.use("/api/user", require("./routes/user"));
 app.use("/api", require("./routes/upload"));
-app.use('/api/order',require('./routes/order'))
-
-
+app.use("/api/order", require("./routes/order"));
+app.use("/api", require("./routes/payment"));
 
 app.use(fileUpload());
 
+const port = process.env.Port || 4000;
 
-const port=process.env.Port ||4000
-
-
-
-
-app.listen(port,()=>{
-    console.log(`server open on ${port}`)
-})
+app.listen(port, () => {
+  console.log(`server open on ${port}`);
+});

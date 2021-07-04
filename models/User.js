@@ -39,7 +39,7 @@ userSchema.methods.getJwtToken = function () {
 userSchema.methods.getResetPasswordToken= function (){
   
     const resetToken= crypto.randomBytes(20).toString('hex').slice(0,4)
-       console.log(resetToken)
+      
     this.resetPasswordToken=resetToken
    
    this.resetPasswordExpire= Date.now() + 30 * 60 * 1000
